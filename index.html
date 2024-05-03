@@ -6,10 +6,19 @@
 -->
 <html>
 	<head>
-		<title>Dimension by HTML5 UP</title>
+		<title>Fremd Chess</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
+
+		<link rel="apple-touch-icon" sizes="180x180" href="./images/fremdlogo_favicon/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="./images/fremdlogo_favicon/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="./images/fremdlogo_favicon/favicon-16x16.png">
+		<link rel="manifest" href="./images/fremdlogo_favicon/site.webmanifest">
+		<link rel="mask-icon" href="./images/fremdlogo_favicon/safari-pinned-tab.svg" color="#5bbad5">
+		<meta name="msapplication-TileColor" content="#da532c">
+		<meta name="theme-color" content="#ffffff">
+		
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 		<link rel="stylesheet"
 			href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
@@ -120,15 +129,54 @@
 								<p>TBD for next season!</p>
 							</article>
 
-						<!-- About -->
+						<!-- Tournament Log -->
 							<article id="tournaments">
 								<h2 class="major">Tournament Log</h2>
+								<div class="table-wrapper" id="divTournamentTable">
+									<table>
+										<thead>
+											<tr>
+												<th>Date</th>
+												<th>Name</th>
+												<th>City</th>
+											</tr>
+										</thead>
+									</table>
+								</div>
+								<button class="primary" id="addTournamentBtn">Add New Tournament</button>
 								<!-- <span class="image main"><img src="images/pic03.jpg" alt="" /></span> -->
 							</article>
+						
+						<!-- New Tournament -->
+						<article id="newtournament">
+							<h2 class="major">Add New Tournament</h2>
+							<form class="signupform" id="signupform" action="javascript:void()" >
+								<div class="fields">
+									<div class="field">
+										<label for="tournamentname">Tournament Name</label>
+										<input type="text" name="tournamentname" id="tournamentname" required />
+									</div>
+									<div class="field">
+										<label for="date">Date (MM/DD/YYYY)</label>
+										<input type="text" name="date" id="date" required />
+									</div>
+									<div class="field">
+										<label for="city">City</label>
+										<input type="text" name="city" id="city" required />
+									</div>
+								</div>
+								<ul class="actions">
+									<li><input type="submit" value="Log Tournament" id='tournamentsubmitbutton' class="primary"/></li>
+								</ul>
+								<!--<button class="primary" id="signupbutton">Sign Up</button>-->
+							</form>
+							<!-- <span class="image main"><img src="images/pic03.jpg" alt="" /></span> -->
+						</article>
+							
 						<!-- tactics -->
 							<article id="tactics">
 								<h2 class="major">Tactics</h2>
-								<p>You can drag and drop pieces to find the solution and click the reset button to bring it back to the original position. <br> <br> When inputting your solutions, simply list the moves in order with spaces between each move but no spaces within a move. For example "e4 e5 Nf3+ Nf6 h1=Q" is valid. Make sure to use accurate chess notation, because otherwise, answers will not be accepted by the computer!</p>
+								<p>You can drag and drop pieces to find the solution and click the reset button to bring it back to the original position. <br> <br> When inputting your solutions, simply list the moves in order with spaces between each move but no spaces within a move. For example "e4 e5 Nf3+ Nf6 h1=Q" is valid. Make sure to use accurate chess notation, because otherwise, answers will not be accepted by the computer! <br><br> You are required to do seven tactics every week. New tactics will be posted every Sunday. Your total number of tactics is viewable on the "standings" page.</p>
 								<!-- <span class="image main"><img src="images/pic03.jpg" alt="" /></span> -->
 								<button class="primary" style='margin-right: 15px;' onclick="window.location.href = 'index.html#tactic1'">1</button>
 								<button class="primary" style='margin-right: 15px;' onclick="window.location.href = 'index.html#tactic2'">2</button>
@@ -227,7 +275,7 @@
 										</div>
 										<div class="field half">
 											<label for="email">Email</label>
-											<input type="text" name="email" id="email" />
+											<input type="text" name="email" id="emailcontact" />
 										</div>
 										<div class="field">
 											<label for="message">Message</label>
@@ -511,7 +559,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 				// Import the functions you need from the SDKs you need
 				import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
 				import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-analytics.js";
-				import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+				import { getDatabase, ref, set, onValue, update, push } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
 	
 				// TODO: Add SDKs for Firebase products that you want to use
 				// https://firebase.google.com/docs/web/setup#available-libraries
@@ -574,10 +622,27 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 					}, 3000);
 				});
 
+				document.getElementById("tournamentsubmitbutton").addEventListener("click", function() {
+					let tournamentname = document.getElementById('tournamentname').value
+					let date = document.getElementById('date').value;
+					let city = document.getElementById('city').value;
+
+					const updates = {};
+					updates['/users/' + sessionStorage.getItem('chesslogin') + '/tournaments/' + date.split("/")[2] + date.split('/')[0] + date.split('/')[1] + tournamentname.split(' ')[0]] = {'tournamentname': tournamentname, 'date': date, 'city': city};
+					update(ref(db), updates);
+					
+					fetchUserData();
+
+					console.log('rannn')
+					setTimeout(function (){
+						window.location.href = 'index.html#tournaments';								
+					}, 3000);
+				});
+
 				document.getElementById("loginbutton").addEventListener("click", function() {
 					let email1 = document.getElementById('emaillog').value;
 					let password1 = document.getElementById('passwordlog').value;
-					
+					console.log('password: ' + password1)
 					let pass = "placeholder"
 
 					onValue(ref(db, 'users/' + email1.split('@')[0] + '/password'), (snapshot) => {
@@ -610,7 +675,10 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 						document.getElementById('board1answer').readOnly = true;
 						document.getElementById('board1submit').classList.add('disabled')
 					} else {
-						
+						document.getElementById('board1answer').style.backgroundColor = "red"
+						setTimeout(function (){
+							document.getElementById('board1answer').style.backgroundColor = "rgba(0, 0, 0, 0)"								
+						}, 3000);
 					} 
 				});
 
@@ -625,8 +693,13 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 						document.getElementById('board2answer').style.backgroundColor = "green"
 						document.getElementById('board2answer').readOnly = true;
 						document.getElementById('board2submit').classList.add('disabled')
+
+						fetchUserData()
 					} else {
-						
+						document.getElementById('board2answer').style.backgroundColor = "red"
+						setTimeout(function (){
+							document.getElementById('board2answer').style.backgroundColor = "rgba(0, 0, 0, 0)"								
+						}, 3000);
 					} 
 				});
 
@@ -641,8 +714,13 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 						document.getElementById('board3answer').style.backgroundColor = "green"
 						document.getElementById('board3answer').readOnly = true;
 						document.getElementById('board3submit').classList.add('disabled')
+
+						fetchUserData()
 					} else {
-						
+						document.getElementById('board3answer').style.backgroundColor = "red"
+						setTimeout(function (){
+							document.getElementById('board3answer').style.backgroundColor = "rgba(0, 0, 0, 0)"								
+						}, 3000);
 					} 
 				});
 
@@ -657,8 +735,13 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 						document.getElementById('board4answer').style.backgroundColor = "green"
 						document.getElementById('board4answer').readOnly = true;
 						document.getElementById('board4submit').classList.add('disabled')
+
+						fetchUserData()
 					} else {
-						
+						document.getElementById('board4answer').style.backgroundColor = "red"
+						setTimeout(function (){
+							document.getElementById('board4answer').style.backgroundColor = "rgba(0, 0, 0, 0)"								
+						}, 3000);
 					} 
 				});
 
@@ -673,8 +756,13 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 						document.getElementById('board5answer').style.backgroundColor = "green"
 						document.getElementById('board5answer').readOnly = true;
 						document.getElementById('board5submit').classList.add('disabled')
-					} else {
 						
+						fetchUserData()
+					} else {
+						document.getElementById('board5answer').style.backgroundColor = "red"
+						setTimeout(function (){
+							document.getElementById('board5answer').style.backgroundColor = "rgba(0, 0, 0, 0)"								
+						}, 3000);
 					} 
 				});
 
@@ -689,8 +777,13 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 						document.getElementById('board6answer').style.backgroundColor = "green"
 						document.getElementById('board6answer').readOnly = true;
 						document.getElementById('board6submit').classList.add('disabled')
+
+						fetchUserData()
 					} else {
-						
+						document.getElementById('board6answer').style.backgroundColor = "red"
+						setTimeout(function (){
+							document.getElementById('board6answer').style.backgroundColor = "rgba(0, 0, 0, 0)"								
+						}, 3000);
 					} 
 				});
 
@@ -705,8 +798,13 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 						document.getElementById('board7answer').style.backgroundColor = "green"
 						document.getElementById('board7answer').readOnly = true;
 						document.getElementById('board7submit').classList.add('disabled')
+
+						fetchUserData()
 					} else {
-						
+						document.getElementById('board7answer').style.backgroundColor = "red"
+						setTimeout(function (){
+							document.getElementById('board7answer').style.backgroundColor = "rgba(0, 0, 0, 0)"								
+						}, 3000);
 					} 
 				});
 
@@ -767,6 +865,14 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 							document.getElementById('board7submit').classList.add('disabled')
 						}
 					}
+					else if (window.location.hash === '#tournaments') {
+						let output = ''
+						let tournamentIds = Object.keys(currUserData['tournaments'])
+						for (let i = 0; i < tournamentIds.length; i++){
+							output += '<tr><td>' + currUserData['tournaments'][tournamentIds[i]]['tournamentname'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['date'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['city'] + '</td></tr>'
+						}
+						document.getElementById('divTournamentTable').innerHTML = "<table><thead><tr><th>Name</th><th>Date</th><th>City</th></tr></thead><tbody>" + output + "</tbody></table>"
+					}
 				}
 
 				setTimeout(function (){
@@ -774,9 +880,12 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 				}, 1000);
 
 				window.addEventListener('hashchange', handleHashChange);
-
 			</script>
 			<script>
+				document.getElementById("addTournamentBtn").addEventListener("click", function() {
+					window.location.href = 'index.html#newtournament'
+				});
+
 				//NEW TACTICS
 				FENs = ['rnbqkbnr/pppp3p/8/4p3/5p2/6p1/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'rnbqkbnr/pppp3p/8/4p3/5p2/6p1/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'rnbqkbnr/pppp3p/8/4p3/5p2/6p1/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'rnbqkbnr/pppp3p/8/4p3/5p2/6p1/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'rnbqkbnr/pppp3p/8/4p3/5p2/6p1/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'rnbqkbnr/pppp3p/8/4p3/5p2/6p1/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'rnbqkbnr/pppp3p/8/4p3/5p2/6p1/PPPPPPPP/RNBQKBNR w KQkq - 0 1']
 				orients = ['black', 'white', 'white', 'black',  'white', 'black', 'black']
