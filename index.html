@@ -191,13 +191,13 @@
 								<h2 class="major">Tactics</h2>
 								<p>You can drag and drop pieces to find the solution and click the reset button to bring it back to the original position. <br> <br> When inputting your solutions, simply list the moves in order with spaces between each move but no spaces within a move. For example "e4 e5 Nf3+ Nf6 h1=Q" is valid. Make sure to use accurate chess notation, because otherwise, answers will not be accepted by the computer! <br><br> You are required to do seven tactics every week. New tactics will be posted every Sunday. Your total number of tactics is viewable on the "standings" page.</p>
 								<!-- <span class="image main"><img src="images/pic03.jpg" alt="" /></span> -->
-								<button class="primary" style='margin-right: 15px;' onclick="window.location.href = 'index.html#tactic1'">1</button>
-								<button class="primary" style='margin-right: 15px;' onclick="window.location.href = 'index.html#tactic2'">2</button>
-								<button class="primary" style='margin-right: 15px;' onclick="window.location.href = 'index.html#tactic3'">3</button>
-								<button class="primary" style='margin-right: 15px;' onclick="window.location.href = 'index.html#tactic4'">4</button>
-								<button class="primary" style='margin-right: 15px;' onclick="window.location.href = 'index.html#tactic5'">5</button>
-								<button class="primary" style='margin-right: 15px;' onclick="window.location.href = 'index.html#tactic6'">6</button>
-								<button class="primary" onclick="window.location.href = 'index.html#tactic7'">7</button>
+								<button class="primary" style='margin-right: 15px;' id='1btn' onclick="window.location.href = 'index.html#tactic1'">1</button>
+								<button class="primary" style='margin-right: 15px;' id='2btn' onclick="window.location.href = 'index.html#tactic2'">2</button>
+								<button class="primary" style='margin-right: 15px;' id='3btn' onclick="window.location.href = 'index.html#tactic3'">3</button>
+								<button class="primary" style='margin-right: 15px;' id='4btn' onclick="window.location.href = 'index.html#tactic4'">4</button>
+								<button class="primary" style='margin-right: 15px;' id='5btn' onclick="window.location.href = 'index.html#tactic5'">5</button>
+								<button class="primary" style='margin-right: 15px;' id='6btn' onclick="window.location.href = 'index.html#tactic6'">6</button>
+								<button class="primary" id='7btn' onclick="window.location.href = 'index.html#tactic7'">7</button>
 							</article>
 
 						<!-- tactic1 -->
@@ -636,7 +636,6 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 							return response.json();
 						})
 						.then(data => {
-							console.log(data)
 							writeData(firstname1, lastname1, email1, password1, schoolid1, lichessuser1, 0, 0, 0, data['perfs']['rapid']['games'], data['perfs']['puzzle']['games']);
 						})
 						.catch(error => {
@@ -664,7 +663,6 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 
 					fetchUserData();
 
-					console.log('rannn')
 					setTimeout(function (){
 						window.location.href = 'index.html#tournaments';								
 					}, 3000);
@@ -678,17 +676,16 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 
 					onValue(ref(db, 'users/' + email1.split('@')[0] + '/password'), (snapshot) => {
 						pass = snapshot.val()
+						if (password1 == pass) {
+							sessionStorage.setItem("chesslogin", email1.split("@")[0]);
+							fetchUserData()
+							setTimeout(function (){
+								window.location.href = 'index.html';								
+							}, 3000);
+						} else {
+							document.getElementById('loginerror').innerText = "Wrong Username or Password"
+						}
 					});
-					
-					if (password1 == pass) {
-						sessionStorage.setItem("chesslogin", email1.split("@")[0]);
-						fetchUserData()
-						setTimeout(function (){
-							window.location.href = 'index.html';								
-						}, 3000);
-					} else {
-						document.getElementById('loginerror').innerText = "Wrong Username or Password"
-					}
 				});
 
 				//NEW TACTICS
@@ -840,7 +837,30 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 				});
 
 				function handleHashChange() {
-					if (window.location.hash === '#tactic1') {
+					if (window.location.hash === '#tactics') {
+						if (currUserData['tactic1'] != null){
+							document.getElementById('1btn').style.backgroundColor = 'green'
+						}
+						if (currUserData['tactic2'] != null){
+							document.getElementById('2btn').style.backgroundColor = 'green'
+						}
+						if (currUserData['tactic3'] != null){
+							document.getElementById('3btn').style.backgroundColor = 'green'
+						}
+						if (currUserData['tactic4'] != null){
+							document.getElementById('4btn').style.backgroundColor = 'green'
+						}
+						if (currUserData['tactic5'] != null){
+							document.getElementById('5btn').style.backgroundColor = 'green'
+						}
+						if (currUserData['tactic6'] != null){
+							document.getElementById('6btn').style.backgroundColor = 'green'
+						}
+						if (currUserData['tactic7'] != null){
+							document.getElementById('7btn').style.backgroundColor = 'green'
+						}
+					}
+					else if (window.location.hash === '#tactic1') {
 						if (currUserData['tactic1'] != null){
 							document.getElementById('board1answer').value = answers[0]
 							document.getElementById('board1answer').style.backgroundColor = "green"
@@ -921,7 +941,6 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 										return response.json();
 									})
 									.then(data => {
-										console.log(data)
 										output += '<tr><td>' + allUsers[usernames[i]]['firstname'] + " " + allUsers[usernames[i]]['lastname'] + "</td><td>" + lichessusername + "</td><td>" + (data['perfs']['rapid']['games'] - allUsers[usernames[i]]['origRapid']) + "</td><td>" + data['perfs']['rapid']['rating'] + "</td><td>" + (data['perfs']['puzzle']['games'] - allUsers[usernames[i]]['origPuzzles']) + "</td><td>" + data['perfs']['puzzle']['rating'] + "</td><td>" + allUsers[usernames[i]]['tactics'] + "</td><td>" + allUsers[usernames[i]]['numtournaments'] + '</td></tr>';
 									})
 									.catch(error => {
