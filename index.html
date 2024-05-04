@@ -125,8 +125,21 @@
 						<!-- Work -->
 							<article id="standings">
 								<h2 class="major">Standings</h2>
-								<span class="image main"><img src="images/pic02.jpg" alt="" /></span>
-								<p>TBD for next season!</p>
+								<div class="table-wrapper" id="standingsTableDiv">
+									<table class="sortable">
+										<thead>
+											<tr>
+												<th>Name</th>
+												<th>Lichess Username</th>
+												<th>Rapid Games</th>
+												<th>Rapid Rating</th>
+												<th>Puzzles Played</th>
+												<th>Puzzles Rating</th>
+												<th>Tournaments Played</th>
+											</tr>
+										</thead>
+									</table>
+								</div>
 							</article>
 
 						<!-- Tournament Log -->
@@ -541,7 +554,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 
 				<!-- Footer -->
 					<footer id="footer">
-						<p class="copyright">&copy; Untitled. Design: <a href="https://html5up.net">HTML5 UP</a>.</p>
+						<p class="copyright">&copy; Fremd Chess 2024. Design: <a href="https://html5up.net">HTML5 UP</a>.</p>
 					</footer>
 
 			</div>
@@ -555,6 +568,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
+			<script src="./assets/js/sorttable.js"></script>
 			<script type="module">
 				// Import the functions you need from the SDKs you need
 				import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
@@ -582,7 +596,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 				const analytics = getAnalytics(app);
 				const db = getDatabase(app);
 
-				function writeData(firstname, lastname, email, password, schoolid, lichessuser, tactics, schoolrating) {
+				function writeData(firstname, lastname, email, password, schoolid, lichessuser, tactics, schoolrating, numtournaments, origRapid, origPuzzles) {
 					set(ref(db, "users/" + email.split('@')[0]), {
 						firstname: firstname,
 						lastname: lastname,
@@ -591,7 +605,10 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 						schoolid: schoolid,
 						lichessuser: lichessuser,
 						tactics: tactics,
-						schoolrating: schoolrating
+						schoolrating: schoolrating,
+						numtournaments: numtournaments,
+						origRapid: origRapid,
+						origPuzzles: origPuzzles
 					});
 				}
 				
@@ -611,13 +628,25 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 					let schoolid1 = document.getElementById('schoolid').value;
 					let lichessuser1 = document.getElementById('lichessuser').value;
 
-					writeData(firstname1, lastname1, email1, password1, schoolid1, lichessuser1, 0, 0);
+					fetch('https://lichess.org/api/user/' + lichessuser1)
+						.then(response => {
+							if (!response.ok) {
+							throw new Error('Network response was not ok');
+							}
+							return response.json();
+						})
+						.then(data => {
+							console.log(data)
+							writeData(firstname1, lastname1, email1, password1, schoolid1, lichessuser1, 0, 0, 0, data['perfs']['rapid']['games'], data['perfs']['puzzle']['games']);
+						})
+						.catch(error => {
+							console.error('There was a problem with the fetch operation:', error);
+						});
 					
 					sessionStorage.setItem("chesslogin", email1.split("@")[0]);
 
-					fetchUserData();
-
 					setTimeout(function (){
+						fetchUserData();
 						window.location.href = 'index.html';								
 					}, 3000);
 				});
@@ -630,7 +659,9 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 					const updates = {};
 					updates['/users/' + sessionStorage.getItem('chesslogin') + '/tournaments/' + date.split("/")[2] + date.split('/')[0] + date.split('/')[1] + tournamentname.split(' ')[0]] = {'tournamentname': tournamentname, 'date': date, 'city': city};
 					update(ref(db), updates);
-					
+					updates['/users/' + sessionStorage.getItem('chesslogin') + '/numtournaments/'] = currUserData['numtournaments'] + 1
+					update(ref(db), updates);
+
 					fetchUserData();
 
 					console.log('rannn')
@@ -873,6 +904,36 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 						}
 						document.getElementById('divTournamentTable').innerHTML = "<table><thead><tr><th>Name</th><th>Date</th><th>City</th></tr></thead><tbody>" + output + "</tbody></table>"
 					}
+					else if (window.location.hash === '#standings') {
+						let output = ''
+
+						onValue(ref(db, 'users'), (snapshot) => {
+							let allUsers = snapshot.val()
+							let usernames = Object.keys(allUsers)
+							for (let i = 0; i < usernames.length; i++){
+								let lichessusername = allUsers[usernames[i]]['lichessuser'];
+								let lichessdata = {};
+								fetch('https://lichess.org/api/user/' + lichessusername)
+									.then(response => {
+										if (!response.ok) {
+										throw new Error('Network response was not ok');
+										}
+										return response.json();
+									})
+									.then(data => {
+										console.log(data)
+										output += '<tr><td>' + allUsers[usernames[i]]['firstname'] + " " + allUsers[usernames[i]]['lastname'] + "</td><td>" + lichessusername + "</td><td>" + (data['perfs']['rapid']['games'] - allUsers[usernames[i]]['origRapid']) + "</td><td>" + data['perfs']['rapid']['rating'] + "</td><td>" + (data['perfs']['puzzle']['games'] - allUsers[usernames[i]]['origPuzzles']) + "</td><td>" + data['perfs']['puzzle']['rating'] + "</td><td>" + allUsers[usernames[i]]['tactics'] + "</td><td>" + allUsers[usernames[i]]['numtournaments'] + '</td></tr>';
+									})
+									.catch(error => {
+										console.error('There was a problem with the fetch operation:', error);
+									});
+								//output += '<tr><td>' + allUsers[usernames[i]][tournamentIds[i]]['lichessuser'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['date'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['city'] + '</td></tr>'
+							}
+							setTimeout(function (){
+								document.getElementById('standingsTableDiv').innerHTML = "<table class='sortable'><thead><tr><th>Name</th><th>Lichess Username</th><th>Rapid Games</th><th>Rapid Rating</th><th>Puzzles Played</th><th>Puzzles Rating</th><th>Tactics Solved</th><th>Tournaments Played</th></tr></thead><tbody>" + output + "</tbody></table>"
+							}, 1000);
+						});
+					}
 				}
 
 				setTimeout(function (){
@@ -881,6 +942,9 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 
 				window.addEventListener('hashchange', handleHashChange);
 			</script>
+
+
+
 			<script>
 				document.getElementById("addTournamentBtn").addEventListener("click", function() {
 					window.location.href = 'index.html#newtournament'
