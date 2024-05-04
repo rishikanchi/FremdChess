@@ -126,16 +126,16 @@
 							<article id="standings" style="width: 50rem;">
 								<h2 class="major">Standings</h2>
 								<div class="table-wrapper" id="standingsTableDiv">
-									<table class="sortable">
+									<table class="sortable" id="standingsTable">
 										<thead>
 											<tr>
-												<th>Name</th>
-												<th>Lichess Username</th>
-												<th>Rapid Games</th>
-												<th>Rapid Rating</th>
-												<th>Puzzles Played</th>
-												<th>Puzzles Rating</th>
-												<th>Tournaments Played</th>
+												<th onclick="sortTable(0)">Name</th>
+												<th onclick="sortTable(1)">Lichess Username</th>
+												<th onclick="sortTable(2)">Rapid Games</th>
+												<th onclick="sortTable(3)">Rapid Rating</th>
+												<th onclick="sortTable(4)">Puzzles Played</th>
+												<th onclick="sortTable(5)">Puzzles Rating</th>
+												<th onclick="sortTable(6)">Tournaments Played</th>
 											</tr>
 										</thead>
 									</table>
@@ -568,7 +568,6 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
-			<script src="./assets/js/sorttable.js"></script>
 			<script type="module">
 				// Import the functions you need from the SDKs you need
 				import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
@@ -949,7 +948,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 								//output += '<tr><td>' + allUsers[usernames[i]][tournamentIds[i]]['lichessuser'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['date'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['city'] + '</td></tr>'
 							}
 							setTimeout(function (){
-								document.getElementById('standingsTableDiv').innerHTML = "<table class='sortable'><thead><tr><th>Name</th><th>Lichess Username</th><th>Rapid Games</th><th>Rapid Rating</th><th>Puzzles Played</th><th>Puzzles Rating</th><th>Tactics Solved</th><th>Tournaments Played</th></tr></thead><tbody>" + output + "</tbody></table>"
+								document.getElementById('standingsTableDiv').innerHTML = "<table class='sortable'><thead><tr><th onclick='sortTable(0)' >Name</th><th onclick='sortTable(1)'>Lichess Username</th><th onclick='sortTable(2)'>Rapid Games</th><th onclick='sortTable(3)'>Rapid Rating</th><th onclick='sortTable(4)'>Puzzles Played</th><th onclick='sortTable(5)'>Puzzles Rating</th><th onclick='sortTable(6)'>Tactics Solved</th><th onclick='sortTable(7)'>Tournaments Played</th></tr></thead><tbody>" + output + "</tbody></table>"
 							}, 1000);
 						});
 					}
@@ -1057,6 +1056,61 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 					}
 					else if (num == 7) {
 						var board1 = Chessboard('myBoard7', cfg7)
+					}
+				}
+
+				function sortTable(n) {
+					var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+					table = document.getElementById("standingsTable");
+					switching = true;
+					// Set the sorting direction to ascending:
+					dir = "asc";
+					/* Make a loop that will continue until
+					no switching has been done: */
+					while (switching) {
+						// Start by saying: no switching is done:
+						switching = false;
+						rows = table.rows;
+						/* Loop through all table rows (except the
+						first, which contains table headers): */
+						for (i = 1; i < (rows.length - 1); i++) {
+						// Start by saying there should be no switching:
+						shouldSwitch = false;
+						/* Get the two elements you want to compare,
+						one from current row and one from the next: */
+						x = rows[i].getElementsByTagName("TD")[n];
+						y = rows[i + 1].getElementsByTagName("TD")[n];
+						/* Check if the two rows should switch place,
+						based on the direction, asc or desc: */
+						if (dir == "asc") {
+							if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+							// If so, mark as a switch and break the loop:
+							shouldSwitch = true;
+							break;
+							}
+						} else if (dir == "desc") {
+							if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+							// If so, mark as a switch and break the loop:
+							shouldSwitch = true;
+							break;
+							}
+						}
+						}
+						if (shouldSwitch) {
+						/* If a switch has been marked, make the switch
+						and mark that a switch has been done: */
+						rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+						switching = true;
+						// Each time a switch is done, increase this count by 1:
+						switchcount ++;
+						} else {
+						/* If no switching has been done AND the direction is "asc",
+						set the direction to "desc" and run the while loop again. */
+						if (switchcount == 0 && dir == "asc") {
+							dir = "desc";
+							switching = true;
+						}
+						}
 					}
 				}
 
