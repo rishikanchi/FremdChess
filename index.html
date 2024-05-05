@@ -620,6 +620,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 				fetchUserData()
 
 				document.getElementById("signupbutton").addEventListener("click", function() {
+					console.log('ran')
 					let firstname1 = document.getElementById('firstname').value
 					let lastname1 = document.getElementById('lastname').value;
 					let email1 = document.getElementById('email').value;
@@ -635,7 +636,17 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 							return response.json();
 						})
 						.then(data => {
-							writeData(firstname1, lastname1, email1, password1, schoolid1, lichessuser1, 0, 0, 0, data['perfs']['rapid']['games'], data['perfs']['puzzle']['games']);
+							console.log(data)
+
+							let rapidGames, puzzlesPlayed = 0;
+							try {
+								rapidGames = data['perfs']['rapid']['games'];
+							} catch {}
+							try {
+								puzzlesPlayed = data['perfs']['puzzle']['games']
+							} catch {}
+
+							writeData(firstname1, lastname1, email1, password1, schoolid1, lichessuser1, 0, 0, 0, rapidGames, puzzlesPlayed);
 						})
 						.catch(error => {
 							console.error('There was a problem with the fetch operation:', error);
@@ -645,7 +656,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 
 					setTimeout(function (){
 						fetchUserData();
-						window.location.href = 'index.html';								
+						//window.location.href = 'index.html';								
 					}, 3000);
 				});
 
@@ -670,7 +681,6 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 				document.getElementById("loginbutton").addEventListener("click", function() {
 					let email1 = document.getElementById('emaillog').value;
 					let password1 = document.getElementById('passwordlog').value;
-					console.log('password: ' + password1)
 					let pass = "placeholder"
 
 					onValue(ref(db, 'users/' + email1.split('@')[0] + '/password'), (snapshot) => {
@@ -940,7 +950,21 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 										return response.json();
 									})
 									.then(data => {
-										output += '<tr><td>' + allUsers[usernames[i]]['firstname'] + " " + allUsers[usernames[i]]['lastname'] + "</td><td>" + lichessusername + "</td><td>" + (data['perfs']['rapid']['games'] - allUsers[usernames[i]]['origRapid']) + "</td><td>" + data['perfs']['rapid']['rating'] + "</td><td>" + (data['perfs']['puzzle']['games'] - allUsers[usernames[i]]['origPuzzles']) + "</td><td>" + data['perfs']['puzzle']['rating'] + "</td><td>" + allUsers[usernames[i]]['tactics'] + "</td><td>" + allUsers[usernames[i]]['numtournaments'] + '</td></tr>';
+										let rapidGames, puzzlesPlayed, rapidRating, puzzlesRating = 0;
+										try {
+											rapidGames = data['perfs']['rapid']['games'];
+										} catch {}
+										try {
+											rapidRating = data['perfs']['rapid']['rating'];
+										} catch {}
+										try {
+											puzzlesPlayed = data['perfs']['puzzle']['games']
+										} catch {}
+										try {
+											puzzlesRating = data['perfs']['puzzle']['rating']
+										} catch {}
+
+										output += '<tr><td>' + allUsers[usernames[i]]['firstname'] + " " + allUsers[usernames[i]]['lastname'] + "</td><td>" + lichessusername + "</td><td>" + (rapidGames - allUsers[usernames[i]]['origRapid']) + "</td><td>" + rapidRating + "</td><td>" + (puzzlesPlayed - allUsers[usernames[i]]['origPuzzles']) + "</td><td>" + puzzlesRating + "</td><td>" + allUsers[usernames[i]]['tactics'] + "</td><td>" + allUsers[usernames[i]]['numtournaments'] + '</td></tr>';
 									})
 									.catch(error => {
 										console.error('There was a problem with the fetch operation:', error);
@@ -948,7 +972,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 								//output += '<tr><td>' + allUsers[usernames[i]][tournamentIds[i]]['lichessuser'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['date'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['city'] + '</td></tr>'
 							}
 							setTimeout(function (){
-								document.getElementById('standingsTableDiv').innerHTML = "<table class='sortable'><thead><tr><th onclick='sortTable(0)' >Name</th><th onclick='sortTable(1)'>Lichess Username</th><th onclick='sortTable(2)'>Rapid Games</th><th onclick='sortTable(3)'>Rapid Rating</th><th onclick='sortTable(4)'>Puzzles Played</th><th onclick='sortTable(5)'>Puzzles Rating</th><th onclick='sortTable(6)'>Tactics Solved</th><th onclick='sortTable(7)'>Tournaments Played</th></tr></thead><tbody>" + output + "</tbody></table>"
+								document.getElementById('standingsTableDiv').innerHTML = "<table class='sortable' id='standingsTable'><thead><tr><th onclick='sortTable(0)' >Name</th><th onclick='sortTable(1)'>Lichess Username</th><th onclick='sortTable(2)'>Rapid Games</th><th onclick='sortTable(3)'>Rapid Rating</th><th onclick='sortTable(4)'>Puzzles Played</th><th onclick='sortTable(5)'>Puzzles Rating</th><th onclick='sortTable(6)'>Tactics Solved</th><th onclick='sortTable(7)'>Tournaments Played</th></tr></thead><tbody>" + output + "</tbody></table>"
 							}, 1000);
 						});
 					}
