@@ -621,7 +621,6 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 				fetchUserData()
 
 				document.getElementById("signupbutton").addEventListener("click", function() {
-					console.log('ran')
 					let firstname1 = document.getElementById('firstname').value
 					let lastname1 = document.getElementById('lastname').value;
 					let email1 = document.getElementById('email').value;
@@ -637,9 +636,9 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 							return response.json();
 						})
 						.then(data => {
-							console.log(data)
+							let rapidGames = 0;
+							let puzzlesPlayed = 0;
 
-							let rapidGames, puzzlesPlayed = 0;
 							try {
 								rapidGames = data['perfs']['rapid']['games'];
 							} catch {}
@@ -951,7 +950,11 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 										return response.json();
 									})
 									.then(data => {
-										let rapidGames, puzzlesPlayed, rapidRating, puzzlesRating = 0;
+										let rapidGames = 0;
+										let puzzlesPlayed = 0;
+										let rapidRating = 0;
+										let puzzlesRating = 0;
+
 										try {
 											rapidGames = data['perfs']['rapid']['games'];
 										} catch {}
@@ -964,7 +967,6 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 										try {
 											puzzlesRating = data['perfs']['puzzle']['rating']
 										} catch {}
-
 										output += '<tr><td>' + allUsers[usernames[i]]['firstname'] + " " + allUsers[usernames[i]]['lastname'] + "</td><td>" + lichessusername + "</td><td>" + (rapidGames - allUsers[usernames[i]]['origRapid']) + "</td><td>" + rapidRating + "</td><td>" + (puzzlesPlayed - allUsers[usernames[i]]['origPuzzles']) + "</td><td>" + puzzlesRating + "</td><td>" + allUsers[usernames[i]]['tactics'] + "</td><td>" + allUsers[usernames[i]]['numtournaments'] + '</td></tr>';
 									})
 									.catch(error => {
