@@ -113,6 +113,10 @@
 										<label for="lichessuser">Lichess Username</label>
 										<input type="text" name="lichessuser" id="lichessuser" required />
 									</div>
+									<div class="field">
+										<label for="uscfrating">Current USCF Rating (Enter 0 if you haven't played in a USCF tournament)</label>
+										<input type="text" name="uscfrating" id="origuscfrating" required />
+									</div>
 								</div>
 								<ul class="actions">
 									<li><input type="submit" value="Sign Up" id='signupbutton' class="primary"/></li>
@@ -123,7 +127,7 @@
 						</article>
 
 						<!-- Work -->
-							<article id="standings" style="width: 50rem;">
+							<article id="standings" style="width: 60rem;">
 								<h2 class="major">Standings</h2>
 								<p>Click on a column name to sort the table by that column.</p>
 								<div class="table-wrapper" id="standingsTableDiv">
@@ -137,6 +141,8 @@
 												<th onclick="sortTable(4)">Puzzles Played</th>
 												<th onclick="sortTable(5)">Puzzles Rating</th>
 												<th onclick="sortTable(6)">Tournaments Played</th>
+												<th onclick="sortTable(7)">USCF Rating</th>
+												<th onclick="sortTable(8)">USCF Improvement</th>
 											</tr>
 										</thead>
 									</table>
@@ -153,6 +159,7 @@
 												<th>Date</th>
 												<th>Name</th>
 												<th>City</th>
+												<th>Rating</th>
 											</tr>
 										</thead>
 									</table>
@@ -177,6 +184,10 @@
 									<div class="field">
 										<label for="city">City</label>
 										<input type="text" name="city" id="city" required />
+									</div>
+									<div class="field">
+										<label for="newuscfrating">New USCF Rating</label>
+										<input type="text" name="newuscfrating" id="newuscfrating" required />
 									</div>
 								</div>
 								<ul class="actions">
@@ -596,7 +607,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 				const analytics = getAnalytics(app);
 				const db = getDatabase(app);
 
-				function writeData(firstname, lastname, email, password, schoolid, lichessuser, tactics, schoolrating, numtournaments, origRapid, origPuzzles) {
+				function writeData(firstname, lastname, email, password, schoolid, lichessuser, tactics, schoolrating, numtournaments, origuscfrating, origRapid, origPuzzles) {
 					set(ref(db, "users/" + email.split('@')[0]), {
 						firstname: firstname,
 						lastname: lastname,
@@ -607,6 +618,8 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 						tactics: tactics,
 						schoolrating: schoolrating,
 						numtournaments: numtournaments,
+						origuscfrating: origuscfrating,
+						currentuscfrating: origuscfrating,
 						origRapid: origRapid,
 						origPuzzles: origPuzzles
 					});
@@ -627,6 +640,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 					let password1 = document.getElementById('password').value;
 					let schoolid1 = document.getElementById('schoolid').value;
 					let lichessuser1 = document.getElementById('lichessuser').value;
+					let origuscfrating = parseInt(document.getElementById('origuscfrating').value);
 
 					fetch('https://lichess.org/api/user/' + lichessuser1)
 						.then(response => {
@@ -646,17 +660,17 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 								puzzlesPlayed = data['perfs']['puzzle']['games']
 							} catch {}
 
-							writeData(firstname1, lastname1, email1, password1, schoolid1, lichessuser1, 0, 0, 0, rapidGames, puzzlesPlayed);
+							writeData(firstname1, lastname1, email1, password1, schoolid1, lichessuser1, 0, 0, 0, origuscfrating, rapidGames, puzzlesPlayed);
 						})
 						.catch(error => {
 							console.error('There was a problem with the fetch operation:', error);
 						});
 					
 					sessionStorage.setItem("chesslogin", email1.split("@")[0]);
-
+					
 					setTimeout(function (){
 						fetchUserData();
-						//window.location.href = 'index.html';								
+						window.location.href = 'index.html';								
 					}, 3000);
 				});
 
@@ -664,11 +678,14 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 					let tournamentname = document.getElementById('tournamentname').value
 					let date = document.getElementById('date').value;
 					let city = document.getElementById('city').value;
+					let newuscfrating = parseInt(document.getElementById('newuscfrating').value);
 
 					const updates = {};
-					updates['/users/' + sessionStorage.getItem('chesslogin') + '/tournaments/' + date.split("/")[2] + date.split('/')[0] + date.split('/')[1] + tournamentname.split(' ')[0]] = {'tournamentname': tournamentname, 'date': date, 'city': city};
+					updates['/users/' + sessionStorage.getItem('chesslogin') + '/tournaments/' + date.split("/")[2] + date.split('/')[0] + date.split('/')[1] + tournamentname.split(' ')[0]] = {'tournamentname': tournamentname, 'date': date, 'city': city, 'newuscfrating': newuscfrating};
 					update(ref(db), updates);
-					updates['/users/' + sessionStorage.getItem('chesslogin') + '/numtournaments/'] = currUserData['numtournaments'] + 1
+					updates['/users/' + sessionStorage.getItem('chesslogin') + '/numtournaments/'] = currUserData['numtournaments'] + 1;
+					update(ref(db), updates);
+					updates['/users/' + sessionStorage.getItem('chesslogin') + '/currentuscfrating/'] = newuscfrating;
 					update(ref(db), updates);
 
 					fetchUserData();
@@ -929,9 +946,9 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 						let output = ''
 						let tournamentIds = Object.keys(currUserData['tournaments'])
 						for (let i = 0; i < tournamentIds.length; i++){
-							output += '<tr><td>' + currUserData['tournaments'][tournamentIds[i]]['tournamentname'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['date'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['city'] + '</td></tr>'
+							output += '<tr><td>' + currUserData['tournaments'][tournamentIds[i]]['tournamentname'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['date'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['city'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['newuscfrating'] + '</td></tr>';
 						}
-						document.getElementById('divTournamentTable').innerHTML = "<table><thead><tr><th>Name</th><th>Date</th><th>City</th></tr></thead><tbody>" + output + "</tbody></table>"
+						document.getElementById('divTournamentTable').innerHTML = "<table><thead><tr><th>Name</th><th>Date</th><th>City</th><th>Rating</th></tr></thead><tbody>" + output + "</tbody></table>"
 					}
 					else if (window.location.hash === '#standings') {
 						let output = ''
@@ -967,7 +984,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 										try {
 											puzzlesRating = data['perfs']['puzzle']['rating']
 										} catch {}
-										output += '<tr><td>' + allUsers[usernames[i]]['firstname'] + " " + allUsers[usernames[i]]['lastname'] + "</td><td>" + lichessusername + "</td><td>" + (rapidGames - allUsers[usernames[i]]['origRapid']) + "</td><td>" + rapidRating + "</td><td>" + (puzzlesPlayed - allUsers[usernames[i]]['origPuzzles']) + "</td><td>" + puzzlesRating + "</td><td>" + allUsers[usernames[i]]['tactics'] + "</td><td>" + allUsers[usernames[i]]['numtournaments'] + '</td></tr>';
+										output += '<tr><td>' + allUsers[usernames[i]]['firstname'] + " " + allUsers[usernames[i]]['lastname'] + "</td><td>" + lichessusername + "</td><td>" + (rapidGames - allUsers[usernames[i]]['origRapid']) + "</td><td>" + rapidRating + "</td><td>" + (puzzlesPlayed - allUsers[usernames[i]]['origPuzzles']) + "</td><td>" + puzzlesRating + "</td><td>" + allUsers[usernames[i]]['tactics'] + "</td><td>" + allUsers[usernames[i]]['numtournaments'] + "</td><td>" + allUsers[usernames[i]]['currentuscfrating'] + "</td><td>" + (allUsers[usernames[i]]['currentuscfrating'] - allUsers[usernames[i]]['origuscfrating']) + '</td></tr>';
 									})
 									.catch(error => {
 										console.error('There was a problem with the fetch operation:', error);
@@ -975,7 +992,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 								//output += '<tr><td>' + allUsers[usernames[i]][tournamentIds[i]]['lichessuser'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['date'] + "</td><td>" + currUserData['tournaments'][tournamentIds[i]]['city'] + '</td></tr>'
 							}
 							setTimeout(function (){
-								document.getElementById('standingsTableDiv').innerHTML = "<table class='sortable' id='standingsTable'><thead><tr><th onclick='sortTable(0)' >Name</th><th onclick='sortTable(1)'>Lichess Username</th><th onclick='sortTable(2)'>Rapid Games</th><th onclick='sortTable(3)'>Rapid Rating</th><th onclick='sortTable(4)'>Puzzles Played</th><th onclick='sortTable(5)'>Puzzles Rating</th><th onclick='sortTable(6)'>Tactics Solved</th><th onclick='sortTable(7)'>Tournaments Played</th></tr></thead><tbody>" + output + "</tbody></table>"
+								document.getElementById('standingsTableDiv').innerHTML = "<table class='sortable' id='standingsTable'><thead><tr><th onclick='sortTable(0)' >Name</th><th onclick='sortTable(1)'>Lichess Username</th><th onclick='sortTable(2)'>Rapid Games</th><th onclick='sortTable(3)'>Rapid Rating</th><th onclick='sortTable(4)'>Puzzles Played</th><th onclick='sortTable(5)'>Puzzles Rating</th><th onclick='sortTable(6)'>Tactics Solved</th><th onclick='sortTable(7)'>Tournaments Played</th><th onclick='sortTable(7)'>USCF Rating</th><th onclick='sortTable(8)'>USCF Improvement</th></tr></thead><tbody>" + output + "</tbody></table>"
 							}, 1000);
 						});
 					}
